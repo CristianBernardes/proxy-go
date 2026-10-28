@@ -3,3 +3,4 @@ headers.txt
 bin/
 docs/
 .vscode/
+.rag_db/
