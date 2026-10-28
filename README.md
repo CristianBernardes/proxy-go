@@ -6,6 +6,10 @@
 > sobrevive a reboot e orquestra cada token da resposta do modelo com a mesma engenharia
 > usada em um streamer de áudio/vídeo ao vivo.
 
+**Ambiente de execução preferencial: Linux nativo.** O proxy foi projetado para rodar
+direto no host, sem container, sem WSL e sem camadas de virtualização. O binário Go
+estático é compilado uma vez e executado como serviço systemd de usuário.
+
 Reescrita completa em **Go**, executada **100% localmente** —
 nenhuma dependência de Node, npm ou Docker é necessária no host. Só **Go para compilar**
 e o binário resultante rodando direto como serviço do sistema (systemd).
