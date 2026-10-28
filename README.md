@@ -10,8 +10,8 @@
 direto no host, sem container, sem WSL e sem camadas de virtualização. O binário Go
 estático é compilado uma vez e executado como serviço systemd de usuário.
 
-Reescrita completa em **Go**, executada **100% localmente** —
-nenhuma dependência de Node, npm ou Docker é necessária no host. Só **Go para compilar**
+Projeto **do zero em Go** — não é uma reescrita de outro idioma. Executado **100% localmente** —
+nenhuma dependência de runtime externo, npm ou Docker é necessária no host. Só **Go para compilar**
 e o binário resultante rodando direto como serviço do sistema (systemd).
 
 > 📖 A arquitetura completa (a analogia streaming de mídia ↔ streaming de tokens, DDD, SOLID,
@@ -37,7 +37,7 @@ e o binário resultante rodando direto como serviço do sistema (systemd).
 - [Gerar configuração do VS Code](#-gerar-configuração-do-vs-code)
 - [Adicionar modelos no GitHub Copilot](#-adicionar-modelos-no-github-copilot)
 - [Observabilidade](#-observabilidade)
-- [Go vs. Node — o que muda na prática](#-go-vs-node--o-que-muda-na-prática)
+- [Por que Go — design desde a origem](#-por-que-go--design-desde-a-origem)
 - [Troubleshooting](#-troubleshooting)
 - [Glossário rápido](#-glossário-rápido)
 
@@ -45,16 +45,15 @@ e o binário resultante rodando direto como serviço do sistema (systemd).
 
 ## 🔄 De script para serviço
 
-A versão Node era iniciada manualmente (`node index.js`) e morria quando o terminal fechava.
-A versão Go tem outra natureza — roda **100% local, direto no host, sem container**:
+O proxy foi **projetado do zero em Go** — não é uma reescrita de um script anterior. Desde o início, sua natureza é diferente: roda **100% local, direto no host, sem container**:
 
-|                                      | Node (descontinuado)          | Go (este repositório)                                                        |
-| ------------------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------- |
-| Como inicia                          | `node index.js` no terminal                   | `make install-service` — serviço systemd de usuário em background            |
-| O que acontece ao fechar o terminal  | O processo morre                              | Nada — o serviço continua rodando (não depende de terminal/sessão)           |
-| O que acontece se a máquina reinicia | Nada — precisa rodar `node index.js` de novo  | O systemd inicia o serviço sozinho no boot (`loginctl enable-linger`)        |
-| Onde roda                            | Direto no Node.js instalado no host           | Binário Go estático, compilado e executado direto no host                    |
-| Dependências no host                 | Node.js 18+                                   | **Apenas o Go** (para compilar) — nenhum runtime extra, nenhum container     |
+|                                      | Go (este repositório)                                                        |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| Como inicia                          | `make install-service` — serviço systemd de usuário em background            |
+| O que acontece ao fechar o terminal  | Nada — o serviço continua rodando (não depende de terminal/sessão)           |
+| O que acontece se a máquina reinicia | O systemd inicia o serviço sozinho no boot (`loginctl enable-linger`)        |
+| Onde roda                            | Binário Go estático, compilado e executado direto no host                    |
+| Dependências no host                 | **Apenas o Go** (para compilar) — nenhum runtime extra, nenhum container     |
 
 Na prática: você configura uma vez (`make install-service`) e esquece. O proxy **está lá**, sempre em `http://localhost:11435`, como qualquer outro serviço de infraestrutura da sua máquina.
 
@@ -87,7 +86,7 @@ flowchart LR
 
 ## 🏛️ Arquitetura em camadas
 
-Mesma direção de dependência da versão Node (`presentation → application → domain`), com `infrastructure` implementando as _ports_ do domínio via interfaces Go satisfeitas implicitamente:
+Direção de dependência (`presentation → application → domain`), com `infrastructure` implementando as _ports_ do domínio via interfaces Go satisfeitas implicitamente:
 
 ```mermaid
 flowchart TD
@@ -332,7 +331,7 @@ cp .env.example .env
 # edite .env: ajuste OLLAMA_URL, ENSEMBLE_WORKERS e ENSEMBLE_JUDGE conforme seus modelos
 ```
 
-> Execução 100% local — nenhuma dependência de Docker, Node ou npm. `OLLAMA_URL` aponta
+> Execução 100% local — nenhuma dependência de Docker ou runtime externo. `OLLAMA_URL` aponta
 > direto para `http://localhost:11434`, já que proxy e Ollama rodam no mesmo host.
 
 ---
@@ -429,7 +428,7 @@ curl -s http://localhost:11435/health
 | `POST` | `/api/chat`            | Ollama          | Chat completion — converte Ollama ↔ OpenAI                          |
 | `GET`  | `/vscode-config`       | —               | Retorna o JSON `chat.models` para o VS Code                         |
 
-Rotas idênticas à versão Node — nenhuma integração existente (VS Code, Continue, Cursor) precisa mudar de contrato, apenas apontar para a porta do proxy (`PORT`, padrão `11435`).
+Rotas estáveis — nenhuma integração existente (VS Code, Continue, Cursor) precisa mudar de contrato, apenas apontar para a porta do proxy (`PORT`, padrão `11435`).
 
 ---
 
@@ -542,23 +541,25 @@ O arquivo aparece em `./vscode-chat-models.json`, pronto para colar em `"chat.mo
 ## 📊 Observabilidade
 
 - **Logs estruturados** — cada requisição é logada via `log/slog` com método, path e duração (`internal/presentation/middleware/logging.go`).
-- **Recover de panics** — middleware `recover.go` garante que uma falha em um handler nunca derruba o processo inteiro (equivalente ao `uncaughtException` do Node, mas sem depender de o processo continuar em estado inconsistente).
+- **Recover de panics** — middleware `recover.go` garante que uma falha em um handler nunca derruba o processo inteiro, evitando que um erro em uma requisição derrube todo o serviço.
 - **Health check** (`GET /health`) — usado para saber se o serviço está de pé, inclusive em scripts de monitoramento locais.
 - **Graceful shutdown** — ao receber `SIGINT`/`SIGTERM`, o servidor aguarda até `SHUTDOWN_TIMEOUT_SECONDS` para os streams ativos drenarem antes de encerrar o processo, evitando cortar respostas em andamento.
 
 ---
 
-## ⚖️ Go vs. Node — o que muda na prática
+## 🎯 Por que Go — design desde a origem
 
-| Aspecto                   | Node.js (descontinuado)                              | Go (este repositório)                                          |
-| ------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Concorrência              | Event loop único — 1 tarefa de CPU pode atrasar tudo                | 1 goroutine por requisição, agendadas M:N pelo runtime         |
-| Streaming                 | `pipe()` direto do upstream para o cliente                          | Pipeline explícito com channel bufferizado (backpressure real) |
-| Cancelamento              | `req.on('close', () => data.destroy?.())` manual em cada controller | `context.Context` propagado automaticamente por toda a cadeia  |
-| Deploy                    | Precisa de Node.js instalado no host                                | Binário estático nativo — poucos MB                            |
-| Dependências externas     | Nenhuma (stdlib do Node)                                            | Nenhuma (stdlib do Go)                                         |
-| Como inicia               | `node index.js` manual                                              | serviço systemd (`make restart`)                               |
-| Geração de config VS Code | `node index.js --generate-config`                                   | `make generate-config` (mesmo resultado)                       |
+O proxy foi concebido do zero em Go por motivos arquitetônicos, não por reescrita:
+
+| Motivo                    | Benefício no proxy                                                |
+| ------------------------- | ----------------------------------------------------------------- |
+| **Concorrência**          | 1 goroutine por requisição, agendadas M:N pelo runtime — cada stream é independente |
+| **Streaming**             | Pipeline explícito com channel bufferizado e backpressure real — nenhum token é descartado |
+| **Cancelamento**          | `context.Context` propagado automaticamente por toda a cadeia — fechamento de aba cancela o upstream |
+| **Deploy**                | Binário estático nativo (poucos MB), sem runtime extra, sem container |
+| **Dependências externas** | Nenhuma — apenas a Go standard library                            |
+| **Como inicia**           | Serviço systemd de usuário (`make restart`) — sobe no boot sem login |
+| **Geração de config VS Code** | `make generate-config` — mesmo resultado, sem dependência de runtime |
 
 ---
 
