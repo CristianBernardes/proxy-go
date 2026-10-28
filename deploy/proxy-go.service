@@ -1,0 +1,20 @@
+# Unit de usuário do systemd para rodar o proxy-go nativamente (sem Docker).
+# Instale com `make install-service` — o Makefile substitui __PROJECT_DIR__ e
+# grava em ~/.config/systemd/user/proxy-go.service.
+#
+# Requer o Ollama já rodando (ex.: serviço `ollama.service`). Restart=on-failure
+# faz o proxy tentar novamente caso o Ollama ainda não esteja de pé no boot.
+[Unit]
+Description=proxy-go — proxy MoA para Ollama
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=__PROJECT_DIR__/bin/proxy
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

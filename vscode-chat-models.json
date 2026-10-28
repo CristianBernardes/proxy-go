@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Ollama (proxy-go)",
+    "vendor": "customendpoint",
+    "apiType": "chat-completions",
+    "models": [
+      {
+        "id": "moa-consensus",
+        "name": "MoA Consensus (comitê)",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": false,
+        "vision": false,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      },
+      {
+        "id": "qwen2.5-coder:32b",
+        "name": "Qwen 2.5 Coder 32B",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": true,
+        "vision": false,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      },
+      {
+        "id": "nemotron-3.5-bolt:latest",
+        "name": "Nemotron 3.5 Bolt (visão + ferramentas)",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": true,
+        "vision": true,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      },
+      {
+        "id": "deepseek-coder-v2:16b",
+        "name": "DeepSeek Coder V2 16B",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": false,
+        "vision": false,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      },
+      {
+        "id": "qwen2.5:32b",
+        "name": "Qwen 2.5 32B",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": true,
+        "vision": false,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      },
+      {
+        "id": "nemotron-3-ultra:cloud",
+        "name": "Nemotron 3 Ultra",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": true,
+        "vision": false,
+        "maxInputTokens": 256000,
+        "maxOutputTokens": 16384
+      },
+      {
+        "id": "sorc/qwen3.5-claude-4.6-opus:latest",
+        "name": "Qwen 3.5 Claude 4.6 Opus (custom)",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": true,
+        "vision": false,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      },
+      {
+        "id": "sqlcoder:latest",
+        "name": "SQLCoder",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": false,
+        "vision": false,
+        "maxInputTokens": 16384,
+        "maxOutputTokens": 4096
+      },
+      {
+        "id": "gpt-oss:20b",
+        "name": "GPT OSS 20B",
+        "url": "http://localhost:11435/v1/chat/completions",
+        "toolCalling": true,
+        "vision": false,
+        "maxInputTokens": 24576,
+        "maxOutputTokens": 8192
+      }
+    ]
+  }
+]
