@@ -1,90 +1,90 @@
 [
-  {
-    "name": "Ollama (proxy-go)",
-    "vendor": "customendpoint",
-    "apiType": "chat-completions",
-    "models": [
-      {
-        "id": "moa-consensus",
-        "name": "MoA Consensus (comitê)",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": false,
-        "vision": false,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      },
-      {
-        "id": "qwen2.5-coder:32b",
-        "name": "Qwen 2.5 Coder 32B",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": true,
-        "vision": false,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      },
-      {
-        "id": "nemotron-3.5-bolt:latest",
-        "name": "Nemotron 3.5 Bolt (visão + ferramentas)",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": true,
-        "vision": true,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      },
-      {
-        "id": "deepseek-coder-v2:16b",
-        "name": "DeepSeek Coder V2 16B",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": false,
-        "vision": false,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      },
-      {
-        "id": "qwen2.5:32b",
-        "name": "Qwen 2.5 32B",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": true,
-        "vision": false,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      },
-      {
-        "id": "nemotron-3-ultra:cloud",
-        "name": "Nemotron 3 Ultra",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": true,
-        "vision": false,
-        "maxInputTokens": 256000,
-        "maxOutputTokens": 16384
-      },
-      {
-        "id": "sorc/qwen3.5-claude-4.6-opus:latest",
-        "name": "Qwen 3.5 Claude 4.6 Opus (custom)",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": true,
-        "vision": false,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      },
-      {
-        "id": "sqlcoder:latest",
-        "name": "SQLCoder",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": false,
-        "vision": false,
-        "maxInputTokens": 16384,
-        "maxOutputTokens": 4096
-      },
-      {
-        "id": "gpt-oss:20b",
-        "name": "GPT OSS 20B",
-        "url": "http://localhost:11435/v1/chat/completions",
-        "toolCalling": true,
-        "vision": false,
-        "maxInputTokens": 24576,
-        "maxOutputTokens": 8192
-      }
-    ]
-  }
+    {
+        "name": "Ollama",
+        "vendor": "customendpoint",
+        "apiType": "chat-completions",
+        "models": [
+            {
+                "id": "qwen3.6:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "qwen3.6:latest",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": true
+            },
+            {
+                "id": "nemotron-3.5-bolt:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "nemotron-3.5-bolt:latest",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": true
+            },
+            {
+                "id": "sorc/qwen3.5-claude-4.6-opus:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "sorc/qwen3.5-claude-4.6-opus:latest",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": true
+            },
+            {
+                "id": "sqlcoder:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "sqlcoder:latest",
+                "toolCalling": false,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": false
+            },
+            {
+                "id": "gpt-oss:20b",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "gpt-oss:20b",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": false
+            },
+            {
+                "id": "nomic-embed-text:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "nomic-embed-text:latest",
+                "toolCalling": false,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": false
+            },
+            {
+                "id": "deepseek-coder-v2:16b",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "deepseek-coder-v2:16b",
+                "toolCalling": false,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": false
+            },
+            {
+                "id": "llama3.3:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "llama3.3:latest",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": false
+            },
+            {
+                "id": "nemotron-3-ultra:cloud",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "nemotron-3-ultra:cloud",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": false
+            }
+        ]
+    }
 ]
