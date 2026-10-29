@@ -32,15 +32,6 @@
                 "vision": true
             },
             {
-                "id": "sqlcoder:latest",
-                "maxInputTokens": 24576,
-                "maxOutputTokens": 8192,
-                "name": "sqlcoder:latest",
-                "toolCalling": false,
-                "url": "http://localhost:11435/v1/chat/completions",
-                "vision": false
-            },
-            {
                 "id": "gpt-oss:20b",
                 "maxInputTokens": 24576,
                 "maxOutputTokens": 8192,
@@ -55,33 +46,6 @@
                 "maxOutputTokens": 8192,
                 "name": "nomic-embed-text:latest",
                 "toolCalling": false,
-                "url": "http://localhost:11435/v1/chat/completions",
-                "vision": false
-            },
-            {
-                "id": "deepseek-coder-v2:16b",
-                "maxInputTokens": 24576,
-                "maxOutputTokens": 8192,
-                "name": "deepseek-coder-v2:16b",
-                "toolCalling": false,
-                "url": "http://localhost:11435/v1/chat/completions",
-                "vision": false
-            },
-            {
-                "id": "llama3.3:latest",
-                "maxInputTokens": 24576,
-                "maxOutputTokens": 8192,
-                "name": "llama3.3:latest",
-                "toolCalling": true,
-                "url": "http://localhost:11435/v1/chat/completions",
-                "vision": false
-            },
-            {
-                "id": "nemotron-3-ultra:cloud",
-                "maxInputTokens": 24576,
-                "maxOutputTokens": 8192,
-                "name": "nemotron-3-ultra:cloud",
-                "toolCalling": true,
                 "url": "http://localhost:11435/v1/chat/completions",
                 "vision": false
             }
