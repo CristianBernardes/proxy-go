@@ -33,7 +33,6 @@ e o binário resultante rodando direto como serviço do sistema (systemd).
 - [Rodando junto com o sistema (restart automático)](#-rodando-junto-com-o-sistema-restart-automático)
 - [Endpoints disponíveis](#-endpoints-disponíveis)
 - [Configuração (.env)](#-configuração-env)
-- [Orquestração de Consenso (Mixture of Agents)](#-orquestração-de-consenso-mixture-of-agents)
 - [Gerar configuração do VS Code](#-gerar-configuração-do-vs-code)
 - [Adicionar modelos no GitHub Copilot](#-adicionar-modelos-no-github-copilot)
 - [Observabilidade](#-observabilidade)
@@ -98,7 +97,6 @@ flowchart TD
     end
     subgraph APP["application/usecase"]
         ChatCompletion
-        Ensemble
         GetModels
         GenerateVSCodeConfig
     end
@@ -167,67 +165,20 @@ flowchart LR
 ```mermaid
 flowchart TD
     A["OpenAI.ChatCompletions\nParseBody"] --> B{"stream: true?"}
-    B -->|"não"| C["execute() síncrono"] --> C2["CopyJSON ao cliente"]
+    B -->|"não"| C["ChatCompletion.Execute síncrono"] --> C2["CopyJSON ao cliente"]
     B -->|"sim"| D["StreamAsync\n200 + Flush imediato"]
-    D --> E["produce: execute(ctx)"]
-    E --> F{"ENSEMBLE_ENABLED\ne sem tools\ne (ENSEMBLE_ALWAYS\nou model = moa-consensus)?"}
-    F -->|"sim"| G["Ensemble.Execute\n(ver fluxo 5)"]
-    F -->|"não"| H["ChatCompletion.Execute"]
-    H --> I{"payload tem tools?"}
-    I -->|"sim"| J["executeWithTools\n(ver fluxo 4)"]
-    I -->|"não"| K["send() ao Ollama\nstream real"]
+    D --> E["produce: ChatCompletion.Execute(ctx)"]
+    E --> K["send() ao Ollama\nstream real"]
     K --> K2["guardEmptyStream\naviso se não vier conteúdo"]
-    G --> L["corpo SSE"]
-    J --> L
-    K2 --> L
+    K2 --> L["corpo SSE"]
     L --> M["loop único de escrita\n(eventos completos + ping)"]
     E -.erro.-> N["chunk '⚠ proxy-go: erro'\n+ [DONE]"]
     N --> M
 ```
 
-`ChatCompletion.Execute` sempre aplica `sanitize` antes de enviar: se vierem `temperature` e `top_p` juntos, `top_p` é removido.
+`ChatCompletion.Execute` sempre aplica `sanitize` antes de enviar: se vierem `temperature` e `top_p` juntos, `top_p` é removido. Em modo não-stream, `ensureContent` garante que a resposta nunca chega vazia ao cliente.
 
-### 4. Caminho com `tools` (modo Agente)
-
-O Copilot em modo Agente sempre envia `tools`. O proxy chama o Ollama **sem stream** para poder inspecionar a resposta inteira:
-
-```mermaid
-flowchart TD
-    A["executeWithTools\nstream=false no upstream"] --> B["POST Ollama /v1/chat/completions"]
-    B --> C{"status"}
-    C -->|"400 'does not support tools'"| D["remove tools e tool_choice\nrefaz como chat normal"]
-    C -->|">= 400"| E["erro → '⚠ proxy-go: upstream erro N'"]
-    C -->|"200"| F["normalizeToolCalls\ntool call emitida como texto → estruturada\narguments sempre string\nfinish_reason = tool_calls"]
-    F --> G["ensureContent\nsem texto e sem tool_calls:\nreasoning vira content\nou aviso com finish_reason\n+ log da resposta"]
-    G --> H{"cliente pediu stream?"}
-    H -->|"sim"| I["chatCompletionToSSE\nmessage → delta + [DONE]"]
-    H -->|"não"| J["JSON final"]
-```
-
-### 5. Orquestração de Consenso (MoA)
-
-```mermaid
-sequenceDiagram
-    participant C as Cliente
-    participant H as Handler
-    participant E as Ensemble
-    participant W as Workers (Ollama)
-    participant J as Juiz (Ollama)
-    C->>H: stream:true, model = moa-consensus
-    H-->>C: 200 + pings
-    H->>E: Execute
-    E->>E: resolveJudge e resolveWorkers
-    E->>W: gather: até ENSEMBLE_CONCURRENCY por vez, non-stream
-    W-->>E: respostas (ou erro/timeout, com duração logada)
-    E->>E: buildJudgeMessages (pergunta + histórico + respostas)
-    E->>J: stream:true
-    J-->>C: síntese final via io.Pipe
-    Note over E,J: erro do Juiz vira '⚠ proxy-go' + [DONE]
-```
-
-Sem workers disponíveis, a pergunta vai direto ao Juiz. Requisições com `tools` nunca entram no MoA.
-
-### 6. Rotas no formato Ollama (`/api/chat`, `/api/generate`)
+### 4. Rotas no formato Ollama (`/api/chat`, `/api/generate`)
 
 ```mermaid
 flowchart TD
@@ -239,7 +190,7 @@ flowchart TD
 
 `GET /api/ps` devolve sempre uma lista vazia, só para não quebrar clientes que fazem polling.
 
-### 7. Modelos e geração de configuração
+### 5. Modelos e geração de configuração
 
 ```mermaid
 flowchart TD
@@ -279,8 +230,6 @@ proxy-go/
 │   ├── application/usecase/
 │   │   ├── chat_completion.go
 │   │   ├── completion_guard.go    # nunca devolve resposta vazia (reasoning → content, aviso)
-│   │   ├── tool_calls.go          # normaliza tool calls e converte non-stream → SSE
-│   │   ├── ensemble.go            # Orquestração de Consenso (Mixture of Agents)
 │   │   ├── get_models.go
 │   │   └── generate_vscode_config.go
 │   │
@@ -328,7 +277,7 @@ proxy-go/
 
 ```bash
 cp .env.example .env
-# edite .env: ajuste OLLAMA_URL, ENSEMBLE_WORKERS e ENSEMBLE_JUDGE conforme seus modelos
+# edite .env: ajuste OLLAMA_URL e PORT conforme seu ambiente
 ```
 
 > Execução 100% local — nenhuma dependência de Docker ou runtime externo. `OLLAMA_URL` aponta
@@ -423,7 +372,7 @@ curl -s http://localhost:11435/health
 | ------ | ---------------------- | --------------- | ------------------------------------------------------------------- |
 | `GET`  | `/health`              | —               | Liveness check                                                      |
 | `GET`  | `/v1/models`           | OpenAI          | Lista modelos no formato OpenAI                                     |
-| `POST` | `/v1/chat/completions` | OpenAI          | Chat completion — `stream: true` ou consenso MoA (`ENSEMBLE_MODEL`) |
+| `POST` | `/v1/chat/completions` | OpenAI          | Chat completion — `stream: true` ou JSON síncrono                   |
 | `GET`  | `/api/tags`            | Ollama          | Lista modelos no formato Ollama                                     |
 | `POST` | `/api/chat`            | Ollama          | Chat completion — converte Ollama ↔ OpenAI                          |
 | `GET`  | `/vscode-config`       | —               | Retorna o JSON `chat.models` para o VS Code                         |
@@ -445,7 +394,6 @@ O proxy encaminha para um **Ollama** local, sem autenticação. Copie `.env.exam
 | `NUM_CTX`          | `32768`                  | Contexto do Ollama; o gerador nunca promete `maxInputTokens + maxOutputTokens` maior |
 | `MODELS_OVERRIDES_FILE` | `models.overrides.json` | Ajustes por modelo (`maxInputTokens`, `maxOutputTokens`, `toolCalling`, `vision`) |
 | `INSECURE_TLS`     | `false`                  | Ignora o certificado só se `OLLAMA_URL` for `https://` com CA interno                |
-| `ENSEMBLE_CONCURRENCY` | `1`                  | Consultas simultâneas aos especialistas do MoA                                       |
 
 Variáveis extras, **opcionais**, exclusivas da engenharia de streaming em Go (têm defaults sensatos e não precisam ser definidas):
 
@@ -456,43 +404,6 @@ Variáveis extras, **opcionais**, exclusivas da engenharia de streaming em Go (t
 | `SHUTDOWN_TIMEOUT_SECONDS`   | `10`   | Prazo do graceful shutdown para drenar streams ativos antes de encerrar |
 
 ---
-
-## � Orquestração de Consenso (Mixture of Agents)
-
-O proxy expõe um **modelo virtual** (`ENSEMBLE_MODEL`, padrão `moa-consensus`) que
-não existe no Ollama — ao selecioná-lo, o proxy aciona um comitê de modelos:
-
-1. **Fan-out** — consulta N modelos especialistas (`ENSEMBLE_WORKERS`) **em paralelo**, cada um limitado por `ENSEMBLE_TIMEOUT_SECONDS`.
-2. **Síntese** — um modelo **Juiz** (`ENSEMBLE_JUDGE`) recebe as respostas coletadas e produz uma resposta final, coesa, **em streaming** de volta ao cliente.
-
-Como o proxy retorna imediatamente e o keep-alive SSE roda durante o "pensar" do
-comitê, não há timeout enquanto os especialistas respondem; e o `io.Pipe` garante
-backpressure real na fase do Juiz.
-
-| Variável                   | Padrão          | Descrição                                                         |
-| -------------------------- | --------------- | ----------------------------------------------------------------- |
-| `ENSEMBLE_ENABLED`         | `false`         | Liga/desliga a feature                                            |
-| `ENSEMBLE_MODEL`           | `moa-consensus` | Nome do modelo virtual que aciona o comitê                        |
-| `ENSEMBLE_WORKERS`         | —               | Modelos especialistas consultados em paralelo (separados por `,`) |
-| `ENSEMBLE_JUDGE`           | —               | Modelo que sintetiza a resposta final                             |
-| `ENSEMBLE_TIMEOUT_SECONDS` | `60`            | Timeout da fase de fan-out                                        |
-
-Exemplo (streaming):
-
-```bash
-curl -N http://localhost:11435/v1/chat/completions \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "model": "moa-consensus",
-    "stream": true,
-    "messages": [{"role":"user","content":"Explique consenso distribuído em 3 frases."}]
-  }'
-```
-
-Nos logs você verá algo como `ensemble workers_total=3 workers_ok=3 judge=llama3.3:latest`.
-
----
-
 ## 🧾 Gerar configuração do VS Code
 
 Gera o `vscode-chat-models.json` com todos os modelos do Ollama, salvo na raiz do projeto:

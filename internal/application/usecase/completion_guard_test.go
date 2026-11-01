@@ -60,25 +60,3 @@ func TestGuardEmptyStreamPassThrough(t *testing.T) {
 		t.Fatalf("alterou stream válido: %q", out)
 	}
 }
-
-func TestLastUserPromptParts(t *testing.T) {
-	msgs := []any{map[string]any{"role": "user", "content": []any{
-		map[string]any{"type": "text", "text": "olá"},
-		map[string]any{"type": "image_url"},
-		map[string]any{"type": "text", "text": "mundo"},
-	}}}
-	if got := lastUserPrompt(msgs); got != "olá\nmundo" {
-		t.Fatalf("got %q", got)
-	}
-}
-
-func TestHistorySummary(t *testing.T) {
-	msgs := []any{
-		map[string]any{"role": "user", "content": "a"},
-		map[string]any{"role": "assistant", "content": "b"},
-		map[string]any{"role": "user", "content": "c"},
-	}
-	if got := historySummary(msgs); got != "user: a\nassistant: b" {
-		t.Fatalf("got %q", got)
-	}
-}

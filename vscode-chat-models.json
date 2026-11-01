@@ -5,6 +5,15 @@
         "apiType": "chat-completions",
         "models": [
             {
+                "id": "nemotron3:latest",
+                "maxInputTokens": 24576,
+                "maxOutputTokens": 8192,
+                "name": "nemotron3:latest",
+                "toolCalling": true,
+                "url": "http://localhost:11435/v1/chat/completions",
+                "vision": true
+            },
+            {
                 "id": "qwen3.6:latest",
                 "maxInputTokens": 24576,
                 "maxOutputTokens": 8192,

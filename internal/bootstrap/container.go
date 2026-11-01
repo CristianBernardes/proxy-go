@@ -23,7 +23,6 @@ type Container struct {
 
 	GetModels            *usecase.GetModels
 	ChatCompletion       *usecase.ChatCompletion
-	Ensemble             *usecase.Ensemble
 	GenerateVSCodeConfig *usecase.GenerateVSCodeConfig
 
 	Router http.Handler
@@ -44,10 +43,9 @@ func NewContainer(envPath string) (*Container, error) {
 
 	getModels := usecase.NewGetModels(modelRepo)
 	chatCompletion := usecase.NewChatCompletion(cfg, httpClient, log)
-	ensemble := usecase.NewEnsemble(cfg, chatCompletion, getModels, log)
 	generateConfig := usecase.NewGenerateVSCodeConfig(getModels, cfg, log)
 
-	router := presentation.NewRouter(getModels, chatCompletion, ensemble, generateConfig, cfg, log)
+	router := presentation.NewRouter(getModels, chatCompletion, generateConfig, cfg, log)
 
 	return &Container{
 		Config: cfg,
@@ -55,7 +53,6 @@ func NewContainer(envPath string) (*Container, error) {
 
 		GetModels:            getModels,
 		ChatCompletion:       chatCompletion,
-		Ensemble:             ensemble,
 		GenerateVSCodeConfig: generateConfig,
 
 		Router: router,

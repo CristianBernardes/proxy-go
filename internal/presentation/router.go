@@ -14,7 +14,6 @@ import (
 func NewRouter(
 	getModels *usecase.GetModels,
 	chatCompletion *usecase.ChatCompletion,
-	ensemble *usecase.Ensemble,
 	generateConfig *usecase.GenerateVSCodeConfig,
 	cfg *config.EnvConfig,
 	logger *slog.Logger,
@@ -22,7 +21,7 @@ func NewRouter(
 	mux := http.NewServeMux()
 
 	health := handler.NewHealth()
-	openai := handler.NewOpenAI(getModels, chatCompletion, ensemble, cfg, logger)
+	openai := handler.NewOpenAI(getModels, chatCompletion, cfg, logger)
 	ollama := handler.NewOllama(getModels, chatCompletion, cfg, logger)
 	cfgHandler := handler.NewConfig(generateConfig)
 
